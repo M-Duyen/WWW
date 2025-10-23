@@ -169,4 +169,8 @@ public class OrderService {
         }
         order.setTotal(total);
     }
+
+    public List<Order> findByCustomerId(Integer customerId) {
+        return orderRepository.findByCustomerId(customerId);
+    }
 }

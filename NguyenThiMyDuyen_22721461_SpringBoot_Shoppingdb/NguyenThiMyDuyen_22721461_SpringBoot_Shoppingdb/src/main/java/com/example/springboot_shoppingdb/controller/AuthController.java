@@ -37,41 +37,32 @@ public class AuthController {
         return "auth/register";
     }
 
+    // handle registration
     @PostMapping("/register")
-    public String doRegister(
-            @RequestParam("name") String name,
-            @RequestParam("email") String email,
-            @RequestParam(name = "age", required = false) Integer age,
+    public String registerUser(@RequestParam("name") String name,
+            @RequestParam(name = "email", required = false) String email,
             @RequestParam("password") String password,
-            @RequestParam(name = "confirmPassword", required = false) String confirmPassword,
             RedirectAttributes ra) {
 
-        // basic validation
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
-            ra.addAttribute("error", "Email and password are required");
-            return "redirect:/register";
-        }
-        if (confirmPassword != null && !confirmPassword.equals(password)) {
-            ra.addAttribute("error", "Passwords do not match");
+        if (name == null || name.isBlank() || password == null || password.isBlank()) {
+            ra.addFlashAttribute("error", "Name and password are required");
             return "redirect:/register";
         }
 
-        // kiểm tra email đã tồn tại (trong customer table)
-        if (customerRepository.findByEmail(email).isPresent()) {
-            ra.addAttribute("error", "Email already registered");
+        if (customerRepository.findByName(name.trim()).isPresent()
+                || (email != null && !email.isBlank() && customerRepository.findByEmail(email.trim()).isPresent())) {
+            ra.addFlashAttribute("error", "User with same name or email already exists");
             return "redirect:/register";
         }
 
-        // tạo Customer (Customer extends User — sẽ persist cả users và customers do inheritance)
         Customer c = new Customer();
-        c.setName(name != null ? name.trim() : "");
-        c.setEmail(email.trim());
-        c.setAge(age != null ? age : 0);
-        c.setRole("customer"); // lưu role dưới dạng "customer" — CustomUserDetailsService sẽ map thành ROLE_CUSTOMER
+        c.setName(name.trim());
+        if (email != null && !email.isBlank())
+            c.setEmail(email.trim());
         c.setPassword(passwordEncoder.encode(password));
-
         customerRepository.save(c);
 
-        return "redirect:/login?success";
+        ra.addFlashAttribute("message", "Registration successful; please log in");
+        return "redirect:/login";
     }
 }

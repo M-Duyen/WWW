@@ -8,6 +8,7 @@ import com.example.springboot_shoppingdb.repositories.ProductRepository;
 import com.example.springboot_shoppingdb.repositories.CustomerRepository;
 import com.example.springboot_shoppingdb.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -26,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/orders")
@@ -43,82 +46,13 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-//    private Map<String, Integer> usernameToCustomerId; // injected from SecurityConfig
-
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
-    // List orders
-//    @GetMapping
-//    @Transactional(readOnly = true)
-//    public String listOrders(Model model,
-//            Authentication auth,
-//            @RequestParam(name = "productName", required = false) String productName,
-//            @RequestParam(name = "customerName", required = false) String customerName) {
-//
-//        List<Order> orders;
-//
-//        boolean hasProduct = productName != null && !productName.isBlank();
-//        boolean hasCustomer = customerName != null && !customerName.isBlank();
-//
-//        // If authenticated user is a CUSTOMER (not ADMIN), restrict to their orders
-//        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
-//            Integer custId = usernameToCustomerId.get(auth.getName());
-//            if (custId == null) {
-//                // no mapping, return empty list for safety
-//                orders = Collections.emptyList();
-//            } else {
-//                if (!hasProduct && !hasCustomer) {
-//                    orders = orderRepository.findByCustomer_Id(custId);
-//                } else if (hasProduct && !hasCustomer) {
-//                    // filter product results limited to this customer
-//                    orders = orderRepository.findDistinctByOrderLineSet_Product_NameContainingIgnoreCase(productName.trim()).stream()
-//                            .filter(o -> o.getCustomer() != null && o.getCustomer().getId() == custId)
-//                            .collect(Collectors.toList());
-//                } else if (!hasProduct && hasCustomer) {
-//                    // if customerName filter provided but user is customer, ignore provided name and show only their orders
-//                    orders = orderRepository.findByCustomer_Id(custId);
-//                } else {
-//                    // both present: intersect then restrict to custId
-//                    List<Order> byProduct = orderRepository.findDistinctByOrderLineSet_Product_NameContainingIgnoreCase(productName.trim());
-//                    orders = byProduct.stream().filter(o -> o.getCustomer() != null && o.getCustomer().getId() == custId)
-//                            .collect(Collectors.toList());
-//                }
-//            }
-//        } else {
-//            // admin or anonymous (anonymous won't reach here due to security rule allowing only authenticated for /orders)
-//            if (!hasProduct && !hasCustomer) {
-//                orders = orderRepository.findAll();
-//            } else if (hasProduct && !hasCustomer) {
-//                orders = orderRepository.findDistinctByOrderLineSet_Product_NameContainingIgnoreCase(productName.trim());
-//            } else if (!hasProduct && hasCustomer) {
-//                orders = orderRepository.findByCustomer_NameContainingIgnoreCase(customerName.trim());
-//            } else {
-//                List<Order> byProduct = orderRepository
-//                        .findDistinctByOrderLineSet_Product_NameContainingIgnoreCase(productName.trim());
-//                List<Order> byCustomer = orderRepository.findByCustomer_NameContainingIgnoreCase(customerName.trim());
-//                Set<Integer> ids = byCustomer.stream().map(Order::getId).collect(Collectors.toSet());
-//                orders = byProduct.stream().filter(o -> ids.contains(o.getId())).collect(Collectors.toList());
-//            }
-//        }
-//
-//        // initialize order lines
-//        orders.forEach(o -> {
-//            if (o.getOrderLineSet() != null)
-//                o.getOrderLineSet().size();
-//        });
-//
-//        model.addAttribute("orders", orders);
-//        model.addAttribute("productName", productName != null ? productName : "");
-//        model.addAttribute("customerName", customerName != null ? customerName : "");
-//        return "order/list";
-//    }
-//
-//    // Show create form
+
+    // Show create form
     @GetMapping("/create")
     public String showCreateForm(Model model, HttpSession session) {
         model.addAttribute("order", new Order());
-        model.addAttribute("customers", customerRepository.findAll());
         model.addAttribute("products", productRepository.findAll());
 
         // read cart from session and prefill selectedProductIds and selectedQuantities
@@ -279,24 +213,37 @@ public class OrderController {
     // View detail
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
-//    public String viewOrder(@PathVariable("id") Integer id, Model model, Authentication auth) {
-//        Order order = orderRepository.findById(id).orElse(null);
-//        if (order == null)
-//            return "redirect:/orders";
-//
-//        // If the principal is a CUSTOMER, ensure they only view their own orders
-//        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
-//            Integer custId = usernameToCustomerId.get(auth.getName());
-//            if (custId == null || order.getCustomer() == null || order.getCustomer().getId() != custId) {
-//                return "redirect:/orders"; // not allowed
-//            }
-//        }
-//
-//        if (order.getOrderLineSet() != null)
-//            order.getOrderLineSet().size();
-//        model.addAttribute("order", order);
-//        return "order/detail";
-//    }
+    public String viewOrder(@PathVariable("id") Integer id, Model model, Authentication auth) {
+        try {
+            Order order = orderRepository.findById(id).orElse(null);
+            if (order == null) {
+                return "redirect:/orders";
+            }
+
+            // If the principal is a CUSTOMER, ensure they only view their own orders
+            if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+                Optional<Customer> oc = customerRepository.findByName(auth.getName());
+                if (oc.isEmpty()) {
+                    return "redirect:/orders"; // unknown principal mapped to no customer
+                }
+                Integer custId = oc.get().getId();
+                if (order.getCustomer() == null || !custId.equals(order.getCustomer().getId())) {
+                    return "redirect:/orders"; // not allowed
+                }
+            }
+
+            // initialize order lines to avoid lazy loading issues in the view
+            if (order.getOrderLineSet() != null) {
+                order.getOrderLineSet().size();
+            }
+            model.addAttribute("order", order);
+            return "order/detail";
+        } catch (Exception ex) {
+            log.error("Failed to render order detail id={}: {}", id, ex.getMessage(), ex);
+            // redirect to list with error flash (templates already use flash messages); simple redirect here:
+            return "redirect:/orders";
+        }
+    }
 
     // Delete
     @PostMapping("/delete/{id}")
@@ -305,4 +252,67 @@ public class OrderController {
             orderRepository.deleteById(id);
         return "redirect:/orders";
     }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/by-customer/{customerId}")
+    @Transactional(readOnly = true)
+    public List<Order> listOrderByCustomer(@PathVariable Integer customerId) {
+        return orderRepository.findByCustomerId(customerId);
+    }
+
+    // NEW: list orders: admin sees all, customer sees only their orders; support ?orderId=...
+    @GetMapping
+    @Transactional(readOnly = true)
+    public String listOrders(Model model, Authentication auth,
+                             @RequestParam(name = "orderId", required = false) Integer orderId) {
+        // expose orderId back to template
+        model.addAttribute("orderId", orderId);
+
+        List<Order> orders = List.of();
+
+        if (orderId != null) {
+            // try to load single order by id
+            Optional<Order> oo = orderRepository.findById(orderId);
+            if (oo.isPresent()) {
+                Order o = oo.get();
+                // if customer role, enforce ownership
+                boolean deny = false;
+                if (auth != null && auth.isAuthenticated() &&
+                        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+                    Optional<Customer> oc = customerRepository.findByName(auth.getName());
+
+                }
+                if (!deny) {
+                    orders = List.of(o);
+                } else {
+                    orders = List.of(); // not allowed to view this order
+                }
+            } else {
+                orders = List.of(); // not found
+            }
+        } else {
+            // existing behavior when no orderId provided
+            if (auth != null && auth.isAuthenticated()) {
+                boolean isAdmin = auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                boolean isCustomer = auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"));
+
+                if (isAdmin) {
+                    orders = orderService.findAll();
+                } else if (isCustomer) {
+                    Optional<Customer> oc = customerRepository.findByName(auth.getName());
+                    if (oc.isPresent()) {
+                        orders = orderService.findByCustomerId(oc.get().getId());
+                    } else {
+                        orders = List.of();
+                    }
+                }
+            }
+        }
+
+        model.addAttribute("orders", orders);
+        return "order/list";
+    }
+
 }

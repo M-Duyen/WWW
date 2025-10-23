@@ -44,10 +44,19 @@
                         sec:authorize="hasRole('ADMIN')"
                         >Add Product</a
                     >
+                    <a th:href="@{/home}" class="btn btn-outline-secondary me-2"
+                        >Home</a
+                    >
+                    <a
+                        th:href="@{/orders}"
+                        class="btn btn-outline-primary me-2"
+                        sec:authorize="hasRole('CUSTOMER')"
+                        >My Orders</a
+                    >
                     <a
                         th:href="@{/cart}"
                         class="btn btn-outline-primary"
-                        sec:authorize="isAuthenticated()"
+                        sec:authorize="hasRole('CUSTOMER')"
                         >View Cart</a
                     >
                     <a
@@ -85,7 +94,7 @@
                                 th:action="@{/cart/add}"
                                 method="post"
                                 class="mt-auto"
-                                sec:authorize="hasAnyRole('CUSTOMER','ADMIN')"
+                                sec:authorize="hasAnyRole('CUSTOMER')"
                             >
                                 <input
                                     type="hidden"

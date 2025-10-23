@@ -1,57 +1,107 @@
 <!DOCTYPE html>
-<html
-    xmlns:th="http://www.thymeleaf.org"
-    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
->
-    <head>
-        <meta charset="UTF-8" />
-        <title>Home</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
-    </head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — ShoppingDB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background-color: #f4f6fb;
+        }
+        .hero {
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(13, 110, 253, 0.08);
+            background: #fff;
+            padding: 2rem;
+        }
+        .quick-card {
+            border-radius: 10px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            background: #fff;
+            padding: 1.25rem;
+            position: relative;
+        }
+        .quick-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(18, 46, 78, 0.08);
+        }
+        .kv {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .hero-buttons .btn {
+            min-width: 120px;
+        }
+        .card-header-custom {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" th:href="@{/home}">ShoppingDB</a>
+        <div class="d-flex ms-auto align-items-center">
+            <span class="me-3 kv">Today: <span th:text="${date}">2025-10-23</span></span>
+            <form th:action="@{/logout}" method="post" class="me-2" sec:authorize="isAuthenticated()">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button class="btn btn-outline-danger btn-sm">Logout</button>
+            </form>
+            <a th:href="@{/login}" class="btn btn-outline-primary btn-sm" sec:authorize="isAnonymous()">Login</a>
+        </div>
+    </div>
+</nav>
 
-    <body>
-        <div class="container mt-5">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h3 th:text="${message}">Welcome Thymeleaf</h3>
-                </div>
-                <div class="card-body">
-                    <p>Today's date: <span th:text="${date}"></span></p>
-                    <div class="float-end">
-                        <span sec:authorize="isAuthenticated()"
-                            >Hello, <span sec:authentication="name"></span
-                        ></span>
-                        <a
-                            href="/logout"
-                            class="btn btn-sm btn-outline-danger ms-2"
-                            sec:authorize="isAuthenticated()"
-                            >Logout</a
-                        >
-                        <a
-                            href="/login"
-                            class="btn btn-sm btn-outline-primary ms-2"
-                            sec:authorize="isAnonymous()"
-                            >Login</a
-                        >
+<main class="container py-5">
+    <div class="row g-4">
+        <!-- Left section -->
+        <div class="col-12 col-lg-8">
+            <!-- Hero -->
+            <div class="hero mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start">
+                    <div>
+                        <h2 class="mb-2" th:text="${message}">Welcome!</h2>
+                        <p class="kv mb-3">
+                            Manage products, orders and customers from the admin panel, or shop as a customer.
+                        </p>
+                        <div class="hero-buttons d-flex flex-wrap gap-2">
+                            <a th:href="@{/products}" class="btn btn-primary">Products</a>
+                            <div sec:authorize="hasRole('CUSTOMER')">
+                                <a th:href="@{/orders}" class="btn btn-outline-primary" sec:authorize="isAuthenticated()">My Orders</a>
+                                <a th:href="@{/cart}" class="btn btn-outline-secondary" sec:authorize="isAuthenticated()">View Cart</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end d-none d-md-block mt-3 mt-md-0">
+                        <div class="kv">Quick stats</div>
+                        <div class="h4 fw-bold mt-2 text-primary">Shop & Manage</div>
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h4>Product Management</h4>
+        </div>
+
+        <!-- Right section -->
+        <div class="col-12 col-lg-4">
+            <!-- Admin Tools -->
+            <div class="card card-body bg-white shadow-sm mb-3">
+                <h6 class="mb-3">Admin Tools</h6>
+                <div sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/products/create}" class="btn btn-outline-success w-100 mb-2">Add Product</a>
+                    <a th:href="@{/admin/customers}" class="btn btn-outline-dark w-100 mb-2">Manage Customers</a>
+                    <a th:href="@{/orders}" class="btn btn-outline-info w-100">Manage Orders</a>
                 </div>
-                <div class="card-body">
-                    <a href="/products" class="btn btn-outline-primary me-2"
-                        >Product List</a
-                    >
-                    <a href="/orders" class="btn btn-outline-info"
-                        >Order List</a
-                    >
+                <div sec:authorize="!hasRole('ADMIN')">
+                    <p class="kv mb-0">No admin privileges. Contact system administrator for access.</p>
                 </div>
             </div>
+
         </div>
-    </body>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

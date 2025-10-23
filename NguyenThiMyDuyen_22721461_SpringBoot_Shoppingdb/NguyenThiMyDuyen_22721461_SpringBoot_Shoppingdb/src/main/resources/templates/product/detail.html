@@ -45,7 +45,7 @@
                     <form
                         th:action="@{/cart/add}"
                         method="post"
-                        sec:authorize="hasAnyRole('CUSTOMER','ADMIN')"
+                        sec:authorize="hasAnyRole('CUSTOMER')"
                         style="display: inline-block"
                     >
                         <input

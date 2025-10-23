@@ -5,6 +5,9 @@ import com.example.springboot_shoppingdb.repositories.ProductRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -118,6 +121,17 @@ public class CartController {
     // Render checkout page (prefill from session cart)
     @GetMapping("/checkout")
     public String showCheckout(HttpSession session, Model model, RedirectAttributes ra) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = null;
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof UserDetails userDetails) {
+                username = userDetails.getUsername();
+            } else {
+                username = auth.getName();
+            }
+        }
         Map<Integer, Integer> cart = getCart(session);
         if (cart.isEmpty()) {
             ra.addFlashAttribute("message", "Cart is empty");
@@ -131,7 +145,7 @@ public class CartController {
 
         model.addAttribute("items", items);
         model.addAttribute("total", total);
-        model.addAttribute("customers", customerRepository.findAll());
+        model.addAttribute("customerName", username );
         model.addAttribute("selectedQuantities", new HashMap<>(cart));
         return "cart/checkout";
     }
@@ -146,6 +160,7 @@ public class CartController {
             HttpSession session,
             HttpServletRequest request,
             RedirectAttributes ra) {
+
         Map<Integer, Integer> cart = getCart(session);
         if (cart == null || cart.isEmpty()) {
             ra.addFlashAttribute("error", "Cart is empty");
@@ -162,8 +177,28 @@ public class CartController {
             customerId = saved.getId();
         }
 
-        // If still no customer selected/created, create a Guest customer to satisfy
-        // not-null constraint
+        // If still no customer selected/created, try to use authenticated principal
+        if (customerId == null || customerId <= 0) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                String username;
+                Object principal = auth.getPrincipal();
+                if (principal instanceof UserDetails)
+                    username = ((UserDetails) principal).getUsername();
+                else
+                    username = auth.getName();
+                customerRepository.findByName(username).ifPresent(c -> {
+                    // nothing here because we cannot mutate outer variable from lambda;
+                });
+                // simple lookup to set local id
+                Optional<Customer> oc = customerRepository.findByName(username);
+                if (oc.isPresent()) {
+                    customerId = oc.get().getId();
+                }
+            }
+        }
+
+        // If still no customer selected/created, create a Guest customer to satisfy not-null constraint
         if (customerId == null || customerId <= 0) {
             Customer guest = new Customer();
             guest.setName("Guest");
@@ -171,14 +206,15 @@ public class CartController {
             customerId = savedGuest.getId();
         }
 
-        // prepare productIds and quantities (allow override from form fields
-        // quantity_{id})
+        // prepare productIds and quantities (allow override from form fields quantity_{id})
         List<Integer> productIds = new ArrayList<>(cart.keySet());
         Map<Integer, Integer> quantities = new HashMap<>();
         for (Integer pid : productIds) {
             String q = request.getParameter("quantity_" + pid);
             int qty = 1;
             try {
+                if (q != null && !q.isBlank())
+                    q = q.trim();
                 if (q != null && !q.isBlank())
                     qty = Integer.parseInt(q);
             } catch (NumberFormatException ex) {
@@ -191,6 +227,7 @@ public class CartController {
 
         try {
             Order order = new Order();
+            // use resolved customerId (no more hardcoded 10)
             Order saved = orderService.create(order, productIds, quantities, customerId);
             // clear cart
             session.removeAttribute(CART_SESSION_KEY);

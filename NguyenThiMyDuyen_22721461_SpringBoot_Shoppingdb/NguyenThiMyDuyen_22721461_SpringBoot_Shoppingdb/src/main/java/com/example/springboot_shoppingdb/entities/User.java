@@ -22,5 +22,4 @@ public class User {
     private int age;
     private String role;
     private String password;
-    private boolean enabled = true;
 }
