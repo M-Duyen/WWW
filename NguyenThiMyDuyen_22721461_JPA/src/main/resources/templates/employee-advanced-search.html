@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Employee Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-card {
+            transition: transform 0.2s;
+        }
+
+        .search-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" th:href="@{/home}">
+                <i class="bi bi-house-door"></i> Employee Management System
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4 px-4">
+        <!-- Page Header -->
+        <div class="page-header rounded mb-4">
+            <div class="container">
+                <h1 class="display-5 mb-0">
+                    <i class="bi bi-search"></i> Advanced Employee Search
+                </h1>
+                <p class="lead mb-0">Find employees using various criteria</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Search by Role -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-briefcase"></i> Search by Role</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/role}" method="get">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role/Position</label>
+                                <input type="text" class="form-control" id="role" name="role"
+                                    placeholder="e.g., Manager, Developer" required>
+                            </div>
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by Salary Range -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Search by Salary</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/salary}" method="get">
+                            <div class="mb-3">
+                                <label for="minSalary" class="form-label">Min Salary ($)</label>
+                                <input type="number" class="form-control" id="minSalary" name="minSalary"
+                                    placeholder="0" step="0.01" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maxSalary" class="form-label">Max Salary ($)</label>
+                                <input type="number" class="form-control" id="maxSalary" name="maxSalary"
+                                    placeholder="100000" step="0.01" min="0" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by Age Range -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-person"></i> Search by Age</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/age}" method="get">
+                            <div class="mb-3">
+                                <label for="minAge" class="form-label">Min Age</label>
+                                <input type="number" class="form-control" id="minAge" name="minAge" placeholder="18"
+                                    min="18" max="100" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maxAge" class="form-label">Max Age</label>
+                                <input type="number" class="form-control" id="maxAge" name="maxAge" placeholder="65"
+                                    min="18" max="100" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by Name and Salary -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-person-plus"></i> Search by Name & Salary</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/name-salary}" method="get">
+                            <div class="mb-3">
+                                <label for="nameSearch" class="form-label">Employee Name</label>
+                                <input type="text" class="form-control" id="nameSearch" name="name"
+                                    placeholder="Enter name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="minSal" class="form-label">Min Salary ($)</label>
+                                <input type="number" class="form-control" id="minSal" name="minSalary" placeholder="0"
+                                    step="0.01" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maxSal" class="form-label">Max Salary ($)</label>
+                                <input type="number" class="form-control" id="maxSal" name="maxSalary"
+                                    placeholder="100000" step="0.01" min="0" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by DOB Before -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-calendar-minus"></i> Born Before Date</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/dob/before}" method="get">
+                            <div class="mb-3">
+                                <label for="dobBefore" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="dobBefore" name="date" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by DOB After -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Born After Date</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/dob/after}" method="get">
+                            <div class="mb-3">
+                                <label for="dobAfter" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="dobAfter" name="date" required>
+                            </div>
+                            <button type="submit" class="btn btn-secondary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search by DOB Between -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card search-card shadow h-100">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="bi bi-calendar-range"></i> Born Between Dates</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/employees/search/dob/between}" method="get">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate" required>
+                            </div>
+                            <button type="submit" class="btn btn-dark w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-4 mb-5 text-center">
+            <a th:href="@{/employees}" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-arrow-left"></i> Back to Employee List
+            </a>
+            <a th:href="@{/home}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-house"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set max date for DOB inputs to today
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            input.max = today;
+        });
+
+        // Validate salary range
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const minSalary = form.querySelector('input[name="minSalary"]');
+                const maxSalary = form.querySelector('input[name="maxSalary"]');
+
+                if (minSalary && maxSalary) {
+                    if (parseFloat(minSalary.value) > parseFloat(maxSalary.value)) {
+                        e.preventDefault();
+                        alert('Min salary cannot be greater than max salary!');
+                    }
+                }
+
+                const minAge = form.querySelector('input[name="minAge"]');
+                const maxAge = form.querySelector('input[name="maxAge"]');
+
+                if (minAge && maxAge) {
+                    if (parseInt(minAge.value) > parseInt(maxAge.value)) {
+                        e.preventDefault();
+                        alert('Min age cannot be greater than max age!');
+                    }
+                }
+
+                const startDate = form.querySelector('input[name="startDate"]');
+                const endDate = form.querySelector('input[name="endDate"]');
+
+                if (startDate && endDate) {
+                    if (new Date(startDate.value) > new Date(endDate.value)) {
+                        e.preventDefault();
+                        alert('Start date cannot be after end date!');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

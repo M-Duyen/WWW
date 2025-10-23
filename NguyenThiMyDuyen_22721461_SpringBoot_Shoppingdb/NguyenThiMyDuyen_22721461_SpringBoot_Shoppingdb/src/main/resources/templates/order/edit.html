@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Edit Order</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body class="p-4">
+    <div class="container">
+        <h1>Edit Order</h1>
+        <form th:action="@{|/orders/edit/${order.id}|}" method="post">
+            <div class="mb-3">
+                <label class="form-label">Customer</label>
+                <select name="customerId" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}"
+                        th:selected="${order.customer != null ? order.customer.id == c.id : false}">Customer</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" th:value="${order.date}" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Products</label>
+                <div th:each="p : ${products}" class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" th:id="${'p_'+p.id}" name="productIds"
+                        th:value="${p.id}" th:checked="${selectedProductIds.contains(p.id)}">
+                    <label class="form-check-label" th:for="${'p_'+p.id}"
+                        th:text="${p.name + ' — ' + p.price}">Product</label>
+                    &nbsp; Qty:
+                    <input type="number" min="1" th:name="${'quantity_' + p.id}"
+                        th:value="${selectedProductIds.contains(p.id) ? (selectedQuantities[p.id] ?: 1) : 1}"
+                        class="form-control d-inline-block" style="width:80px;">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a th:href="@{/orders}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+
+</html>

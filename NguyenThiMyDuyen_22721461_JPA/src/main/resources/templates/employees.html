@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons .btn {
+            margin: 2px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" th:href="@{/home}">
+                <i class="bi bi-house-door"></i> Employee Management System
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4 px-4">
+        <!-- Page Header -->
+        <div class="page-header rounded mb-4">
+            <div class="container">
+                <h1 class="display-5 mb-0">
+                    <i class="bi bi-people"></i> Employee Management
+                </h1>
+                <p class="lead mb-0">Manage all employees in your organization</p>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a th:href="@{/employees/new}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i> Add New Employee
+                </a>
+                <a th:href="@{/employees/advanced-search}" class="btn btn-info btn-lg">
+                    <i class="bi bi-funnel"></i> Advanced Search
+                </a>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h5 class="mb-3"><i class="bi bi-search"></i> Search Employee</h5>
+            <form th:action="@{/employees/search}" method="get">
+                <div class="row g-2">
+                    <div class="col-md-10">
+                        <input type="text" name="search" th:value="${searchQuery}" class="form-control form-control-lg"
+                            placeholder="Search by employee name...">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-info btn-lg w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Employee Table -->
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Employee List</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="8%"><i class="bi bi-hash"></i> ID</th>
+                                <th width="15%"><i class="bi bi-person"></i> Name</th>
+                                <th width="12%"><i class="bi bi-briefcase"></i> Role</th>
+                                <th width="12%"><i class="bi bi-calendar"></i> DOB</th>
+                                <th width="12%"><i class="bi bi-currency-dollar"></i> Salary</th>
+                                <th width="15%"><i class="bi bi-building"></i> Department</th>
+                                <th width="26%" class="text-center"><i class="bi bi-gear"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="emp: ${employees}">
+                                <td class="align-middle">
+                                    <strong th:text="${emp.id}"></strong>
+                                </td>
+                                <td class="align-middle">
+                                    <h6 class="mb-0" th:text="${emp.name}"></h6>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge bg-info" th:text="${emp.role}"></span>
+                                </td>
+                                <td class="align-middle" th:text="${#temporals.format(emp.dob, 'dd/MM/yyyy')}"></td>
+                                <td class="align-middle text-success fw-bold"
+                                    th:text="'$' + ${#numbers.formatDecimal(emp.salary, 0, 'COMMA', 2, 'POINT')}"></td>
+                                <td class="align-middle">
+                                    <span class="badge bg-secondary"
+                                        th:text="${emp.department != null ? emp.department.deptName : 'N/A'}"></span>
+                                </td>
+                                <td class="align-middle text-center action-buttons">
+                                    <a th:href="@{'/employees/view/' + ${emp.id}}" class="btn btn-sm btn-info"
+                                        title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{'/employees/edit/' + ${emp.id}}" class="btn btn-sm btn-warning"
+                                        title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a th:href="@{'/employees/delete/' + ${emp.id}}"
+                                        onclick="return confirm('Are you sure you want to delete this employee?')"
+                                        class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(employees)}">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    <h5>No employees found</h5>
+                                    <p>Start by adding a new employee</p>
+                                    <a th:href="@{/employees/new}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Add First Employee
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light" th:if="${!#lists.isEmpty(employees)}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Total: <strong th:text="${#lists.size(employees)}"></strong> employee(s)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-4 mb-5">
+            <a th:href="@{/departments}" class="btn btn-outline-secondary">
+                <i class="bi bi-building"></i> Go to Departments
+            </a>
+            <a th:href="@{/home}" class="btn btn-outline-secondary">
+                <i class="bi bi-house"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

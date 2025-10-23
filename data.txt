@@ -1,0 +1,70 @@
+USE employeedb
+
+CREATE TABLE departments(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	NAME NVARCHAR(255)
+)
+
+CREATE TABLE employees(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	NAME NVARCHAR(255),
+	salary DOUBLE,
+	department_id INT,
+	FOREIGN KEY (department_id) REFERENCES departments(id)
+
+)
+
+INSERT INTO departments (NAME) VALUES
+('Sales'),
+('Engineering'),
+('Human Resources');
+
+INSERT INTO employees (NAME, salary, department_id) VALUES
+('Alice', 60000.00, 1),
+('Bob', 75000.00, 2),
+('Charlie', 55000.00, 1),
+('David', 90000.00, 2),
+('Eve', 62000.00, 3),
+('Frank', 80000.00, 2),
+('Grace', 58000.00, 1),
+('Heidi', 72000.00, 3),
+('Ivan', 95000.00, 2),
+('Judy', 65000.00, 1);
+
+
+USE quanlydanhmuc
+
+-- Tạo bảng DANHMUC
+CREATE TABLE DANHMUC (
+    MADM INT PRIMARY KEY AUTO_INCREMENT,
+    TENDANHMUC NVARCHAR(255) NOT NULL,
+    NGUOIQUANLY NVARCHAR(255),
+    GHICHU NVARCHAR(255)
+);
+
+-- Tạo bảng TINTUC
+CREATE TABLE TINTUC (
+    MATT INT PRIMARY KEY AUTO_INCREMENT,
+    TIEUDE NVARCHAR(255) NOT NULL,
+    NOIDUNGTT NVARCHAR(255),
+    LIENKET NVARCHAR(255),
+    MADM INT,
+    FOREIGN KEY (MADM) REFERENCES DANHMUC(MADM)
+);
+go 
+
+USE quanlydanhmuc
+
+INSERT INTO danhmuc (TENDANHMUC, NGUOIQUANLY, GHICHU) VALUES
+('Thời sự', 'Nguyễn Văn A', 'Các tin tức nóng hổi trong và ngoài nước'),
+('Công nghệ', 'Trần Thị B', 'Tin tức, đánh giá về công nghệ, điện tử'),
+('Giải trí', 'Lê Văn C', 'Thông tin về phim ảnh, âm nhạc, người nổi tiếng');
+
+
+
+INSERT INTO tintuc (TIEUDE, NOIDUNGTT, LIENKET, MADM) VALUES
+('Giá vàng hôm nay tăng mạnh', 'Giá vàng SJC hôm nay đã tăng đột biến...', 'http://link.thoisu.com/vang', 1),
+('iPhone 17 ra mắt với chip A20', 'Apple chính thức giới thiệu iPhone 17...', 'http://link.congnghe.com/iphone17', 2),
+('Bộ phim "Đất rừng phương Nam" gây sốt', 'Bộ phim điện ảnh mới ra mắt đã nhận được nhiều lời khen...', 'http://link.giaitri.com/datrung', 3),
+('Khám phá những công nghệ AI mới nhất', 'Bài viết đi sâu vào các ứng dụng AI...', 'http://link.congnghe.com/ai', 2),
+('Tin tức thời sự nổi bật tuần qua', 'Tổng hợp các sự kiện chính trị, xã hội quan trọng...', 'http://link.thoisu.com/tongsop', 1);

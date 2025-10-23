@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Edit Employee' : 'Add New Employee'}">Employee Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .form-label.required:after {
+            content: " *";
+            color: red;
+            font-weight: bold;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .preview-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" th:href="@{/home}">
+                <i class="bi bi-house-door"></i> Employee Management System
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-header text-white py-3">
+                        <h2 class="mb-0">
+                            <i th:class="${isEdit ? 'bi bi-person-gear' : 'bi bi-person-plus'}"></i>
+                            <span th:text="${isEdit ? 'Edit Employee' : 'Add New Employee'}"></span>
+                        </h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Form -->
+                        <form
+                            th:action="@{${employee.id == null ? '/employees/add' : '/employees/edit/' + employee.id}}"
+                            th:object="${employee}" method="post" id="employeeForm" class="needs-validation" novalidate>
+
+                            <div class="row g-3">
+                                <!-- Name -->
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label required">
+                                        <i class="bi bi-person"></i> Full Name
+                                    </label>
+                                    <input type="text" class="form-control" id="name" th:field="*{name}"
+                                        placeholder="Enter full name" required minlength="2" maxlength="100">
+                                    <div class="invalid-feedback">
+                                        Please provide a valid name (2-100 characters).
+                                    </div>
+                                </div>
+
+                                <!-- Role -->
+                                <div class="col-md-6">
+                                    <label for="role" class="form-label required">
+                                        <i class="bi bi-briefcase"></i> Role/Position
+                                    </label>
+                                    <input type="text" class="form-control" id="role" th:field="*{role}"
+                                        placeholder="e.g., Manager, Developer" required minlength="2" maxlength="50">
+                                    <div class="invalid-feedback">
+                                        Please provide a valid role.
+                                    </div>
+                                </div>
+
+                                <!-- Date of Birth -->
+                                <div class="col-md-6">
+                                    <label for="dob" class="form-label required">
+                                        <i class="bi bi-calendar"></i> Date of Birth
+                                    </label>
+                                    <input type="date" class="form-control" id="dob" th:field="*{dob}" required>
+                                    <div class="invalid-feedback">
+                                        Please select a valid date of birth.
+                                    </div>
+                                    <small class="text-muted">Employee must be at least 18 years old</small>
+                                </div>
+
+                                <!-- Salary -->
+                                <div class="col-md-6">
+                                    <label for="salary" class="form-label required">
+                                        <i class="bi bi-currency-dollar"></i> Salary
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="salary" th:field="*{salary}"
+                                            placeholder="0.00" step="0.01" min="0" max="999999.99" required>
+                                        <div class="invalid-feedback">
+                                            Please provide a valid salary (0 - 999,999.99).
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Department -->
+                                <div class="col-12">
+                                    <label for="department" class="form-label required">
+                                        <i class="bi bi-building"></i> Department
+                                    </label>
+                                    <select class="form-select" id="department" th:field="*{department.id}" required>
+                                        <option value="">-- Select Department --</option>
+                                        <option th:each="dept : ${departments}" th:value="${dept.id}"
+                                            th:text="${dept.deptName}"
+                                            th:selected="${employee.department != null and dept.id == employee.department.id}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select a department.
+                                    </div>
+                                </div>
+
+                                <!-- Information Note -->
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Note:</strong> All fields marked with <span class="text-danger">*</span>
+                                        are
+                                        required.
+                                    </div>
+                                </div>
+
+                                <!-- Preview (for edit mode) -->
+                                <div class="col-12" th:if="${isEdit}">
+                                    <div class="preview-info">
+                                        <h6><i class="bi bi-eye"></i> Current Information:</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Employee ID:</small>
+                                                <p class="mb-1"><strong th:text="${employee.id}"></strong></p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Created Date:</small>
+                                                <p class="mb-1"><strong>N/A</strong></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="col-12 d-flex justify-content-between mt-4">
+                                    <a th:href="@{/employees}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-secondary me-2" th:if="${!isEdit}">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i th:class="${isEdit ? 'bi bi-check-circle' : 'bi bi-plus-circle'}"></i>
+                                            <span th:text="${isEdit ? 'Update Employee' : 'Add Employee'}"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Help Section -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6><i class="bi bi-question-circle"></i> Help</h6>
+                        <ul class="small mb-0">
+                            <li>Name: Enter employee's full name (2-100 characters)</li>
+                            <li>Role: Job position or title (2-50 characters)</li>
+                            <li>DOB: Employee must be at least 18 years old</li>
+                            <li>Salary: Monthly salary in USD (max: $999,999.99)</li>
+                            <li>Department: Select from existing departments</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        // Set max date for DOB to 18 years ago
+        const dobInput = document.getElementById('dob');
+        const today = new Date();
+        const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        dobInput.max = maxDate.toISOString().split('T')[0];
+
+        // Set min date to 100 years ago
+        const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+        dobInput.min = minDate.toISOString().split('T')[0];
+
+        // Confirm before leaving if form is dirty
+        let formChanged = false;
+        document.getElementById('employeeForm').addEventListener('change', function () {
+            formChanged = true;
+        });
+
+        window.addEventListener('beforeunload', function (e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        document.getElementById('employeeForm').addEventListener('submit', function () {
+            formChanged = false;
+        });
+    </script>
+</body>
+
+</html>

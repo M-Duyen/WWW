@@ -1,0 +1,6 @@
+<Context>
+    <Resource name="jdbc/quanlythuoc" auth="Container"
+              type="javax.sql.DataSource" driverClassName="org.mariadb.jdbc.Driver"
+              url="jdbc:mariadb://127.0.0.1:3306/quanlythuoc"
+              username="root" password="123456789" maxTotal="20" maxIdle="10" maxWaitMillis="-1"/>
+</Context>
