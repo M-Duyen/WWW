@@ -50,6 +50,7 @@ public class OrderController {
 
 
     // Show create form
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     @GetMapping("/create")
     public String showCreateForm(Model model, HttpSession session) {
         model.addAttribute("order", new Order());
@@ -72,6 +73,7 @@ public class OrderController {
 
     // Handle create: delegate to service, create new customer if provided, clear
     // cart after success
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     @PostMapping("/create")
     @Transactional
     public String createOrder(@ModelAttribute Order order,
@@ -128,6 +130,7 @@ public class OrderController {
     }
 
     // Show edit form
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/edit/{id}")
     @Transactional(readOnly = true)
     public String showEditForm(@PathVariable("id") Integer id, Model model) {
@@ -175,6 +178,7 @@ public class OrderController {
     }
 
     // Handle update: delegate to service
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @PostMapping("/edit/{id}")
     @Transactional
     public String updateOrder(@PathVariable("id") Integer id,
@@ -211,6 +215,7 @@ public class OrderController {
     }
 
     // View detail
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public String viewOrder(@PathVariable("id") Integer id, Model model, Authentication auth) {
@@ -246,6 +251,7 @@ public class OrderController {
     }
 
     // Delete
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @PostMapping("/delete/{id}")
     public String deleteOrder(@PathVariable("id") Integer id) {
         if (orderRepository.existsById(id))
@@ -253,7 +259,7 @@ public class OrderController {
         return "redirect:/orders";
     }
 
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/by-customer/{customerId}")
     @Transactional(readOnly = true)
     public List<Order> listOrderByCustomer(@PathVariable Integer customerId) {
@@ -262,6 +268,7 @@ public class OrderController {
 
     // NEW: list orders: admin sees all, customer sees only their orders; support ?orderId=...
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @Transactional(readOnly = true)
     public String listOrders(Model model, Authentication auth,
                              @RequestParam(name = "orderId", required = false) Integer orderId) {

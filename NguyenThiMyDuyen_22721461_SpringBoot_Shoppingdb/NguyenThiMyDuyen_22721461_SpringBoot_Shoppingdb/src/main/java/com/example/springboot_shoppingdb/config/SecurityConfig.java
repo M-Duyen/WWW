@@ -53,8 +53,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/api/chat/**"))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**", "/products", "/products/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/orders/**").hasAnyRole("ADMIN", "CUSTOMER")
                         .requestMatchers("/cart/**", "/cart/checkout").hasRole("CUSTOMER")
                         .requestMatchers("/products/create", "/products/edit/**", "/products/delete/**").hasRole("ADMIN")
@@ -69,8 +72,7 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                )
-                .csrf(Customizer.withDefaults());
+                );
         return http.build();
     }
 

@@ -6,6 +6,7 @@ import com.example.springboot_shoppingdb.entities.Comment;
 import com.example.springboot_shoppingdb.repositories.CategoryRepository;
 import com.example.springboot_shoppingdb.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -70,6 +71,7 @@ public class ProductController {
         return "product/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN')")
     // Show create form
     @GetMapping("/create")
     public String showCreateForm(Model model) {
@@ -78,7 +80,9 @@ public class ProductController {
         return "product/create";
     }
 
+
     // Handle create (ensure comments from binding are removed)
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
     public String createProduct(@ModelAttribute Product product,
             @RequestParam(name = "categoryId", required = false) String categoryIdStr) {
@@ -104,6 +108,7 @@ public class ProductController {
     }
 
     // Show update form
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Integer id, Model model) {
         Product product = productRepository.findById(id).orElse(null);
@@ -116,6 +121,7 @@ public class ProductController {
     }
 
     // Handle update (ensure comments from binding are removed)
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/edit/{id}")
     public String updateProduct(@PathVariable("id") Integer id,
             @ModelAttribute Product product,

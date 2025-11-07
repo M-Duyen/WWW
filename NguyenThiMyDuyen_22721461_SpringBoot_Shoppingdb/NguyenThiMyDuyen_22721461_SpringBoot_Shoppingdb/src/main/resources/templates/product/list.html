@@ -4,6 +4,8 @@
     xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
     <head>
+        <meta name="_csrf" content="${_csrf.token}" />
+        <meta name="_csrf_header" content="${_csrf.headerName}" />
         <meta charset="UTF-8" />
         <title>Products</title>
         <link
@@ -145,5 +147,237 @@
                 </div>
             </div>
         </div>
+        <!-- collapsed-by-default AI chat widget -->
+        <div
+            id="ai-chat-widget"
+            class="closed"
+            style="
+                position: fixed;
+                right: 20px;
+                bottom: 20px;
+                width: 320px;
+                z-index: 9999;
+                font-family: Arial, sans-serif;
+                transition: width 0.2s ease, height 0.2s ease;
+            "
+        >
+            <!-- Toggle shown when closed -->
+            <div
+                id="ai-chat-toggle"
+                style="
+                    position: absolute;
+                    right: 0;
+                    bottom: 0;
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 50%;
+                    background: #1f6feb;
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    font-weight: 600;
+                "
+                title="Open AI Chat"
+            >
+                AI
+            </div>
+
+            <!-- full panel -->
+            <div
+                id="ai-chat-panel"
+                style="
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                "
+            >
+                <div
+                    id="ai-chat-header"
+                    style="
+                        background: #1f6feb;
+                        color: #fff;
+                        padding: 8px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                    "
+                    title="Click to close"
+                >
+                    <span>AI Chat</span>
+                    <button
+                        id="ai-chat-close"
+                        style="
+                            background: transparent;
+                            border: 0;
+                            color: #fff;
+                            cursor: pointer;
+                        "
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <div
+                    id="chat-body"
+                    style="
+                        background: #fff;
+                        height: 300px;
+                        overflow: auto;
+                        padding: 8px;
+                        display: flex;
+                        flex-direction: column;
+                    "
+                ></div>
+
+                <div
+                    id="chat-controls"
+                    style="display: flex; border-top: 1px solid #ddd"
+                >
+                    <input
+                        id="chat-input"
+                        style="flex: 1; padding: 8px; border: 0; outline: none"
+                        placeholder="Gõ tin nhắn..."
+                    />
+                    <button
+                        id="chat-send"
+                        style="
+                            padding: 8px;
+                            border: 0;
+                            background: #2b6cb0;
+                            color: #fff;
+                            cursor: pointer;
+                        "
+                    >
+                        Gửi
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // DOM refs
+            const container = document.getElementById('ai-chat-widget');
+            const toggleBtn = document.getElementById('ai-chat-toggle');
+            const panel = document.getElementById('ai-chat-panel');
+            const header = document.getElementById('ai-chat-header');
+            const closeBtn = document.getElementById('ai-chat-close');
+            const bodyEl = document.getElementById('chat-body');
+            const inputEl = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('chat-send');
+
+            // Utility to open/close widget
+            function openChat() {
+                container.classList.remove('closed');
+                // hide the round toggle when panel is open
+                if (toggleBtn) toggleBtn.style.display = 'none';
+                // ensure panel is visible and sized correctly
+                panel.style.display = 'flex';
+                container.style.width = '320px';
+                inputEl.focus();
+            }
+            function closeChat() {
+                container.classList.add('closed');
+                // show the round toggle when panel is closed
+                if (toggleBtn) toggleBtn.style.display = 'flex';
+                // keep only toggle visible; reduce width so toggle appears as floating circle
+                panel.style.display = 'none';
+                container.style.width = '56px';
+            }
+
+            // Initialize closed by default
+            closeChat();
+
+            // Toggle handlers
+            toggleBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (container.classList.contains('closed')) openChat();
+                else closeChat();
+            });
+            header.addEventListener('click', function () {
+                // clicking header closes the widget
+                closeChat();
+            });
+            closeBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                closeChat();
+            });
+
+            // Chat UI helpers (reuse existing logic)
+            function addMessage(text, who) {
+                const d = document.createElement('div');
+                d.textContent = text;
+                d.style.margin = '6px 0';
+                d.style.padding = '8px';
+                d.style.borderRadius = '6px';
+                d.style.maxWidth = '90%';
+                d.style.background = who === 'user' ? '#edf2f7' : '#e6fffa';
+                d.style.alignSelf = who === 'user' ? 'flex-end' : 'flex-start';
+                bodyEl.appendChild(d);
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+                return d;
+            }
+
+            async function sendMessage() {
+                const text = inputEl.value.trim();
+                if (!text) return;
+                addMessage(text, 'user');
+                inputEl.value = '';
+
+                const placeholder = addMessage('Đang trả lời...', 'bot');
+
+                // CSRF header/token nếu có — use Headers() and guard against invalid names
+                const csrfTokenMeta =
+                    document.querySelector('meta[name="_csrf"]');
+                const csrfHeaderMeta = document.querySelector(
+                    'meta[name="_csrf_header"]',
+                );
+                const headers = new Headers({
+                    'Content-Type': 'application/json',
+                });
+
+                if (csrfTokenMeta && csrfHeaderMeta) {
+                    const token = csrfTokenMeta.getAttribute('content');
+                    let headerName = csrfHeaderMeta.getAttribute('content');
+                    if (token && headerName && headerName.trim() !== '') {
+                        headerName = headerName.trim();
+                        try {
+                            headers.set(headerName, token);
+                        } catch (e) {
+                            console.warn(
+                                'Skipping invalid CSRF header name:',
+                                headerName,
+                                e,
+                            );
+                        }
+                    }
+                }
+
+                try {
+                    const res = await fetch('/api/chat/send', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers,
+                        body: JSON.stringify({ message: text }),
+                    });
+                    const data = await res.json();
+                    placeholder.textContent =
+                        data.reply || data.error || 'Không có phản hồi';
+                } catch (err) {
+                    placeholder.textContent = 'Lỗi: ' + (err.message || err);
+                }
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        </script>
     </body>
 </html>

@@ -30,4 +30,7 @@ public class ProductService {
         product.setId(id);
         return productRepository.save(product);
     }
+    public List<Product> findByNameContainingIgnoreCase(String name){
+        return productRepository.findByNameContainingIgnoreCase(name);
+    }
 }
