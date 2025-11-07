@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org/"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Create</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+</head>
+<body>
+<div class="container-fluid">
+    <form method="post" th:action="@{/course/save}" th:object="${course}" class="col-6">
+        <input type="hidden" th:field="*{id}">
+        <div>
+            <label class="form-label">Class name: </label>
+            <input th:field="*{className}" type="text" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">Subject: </label>
+            <input th:field="*{subject}" type="text" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">No Of Students: </label>
+            <input th:field="*{noOfStudents}" type="number" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">Start Date: </label>
+            <input th:field="*{startDate}" type="date" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">Year: </label>
+            <input th:field="*{year}" type="number" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">End Date: </label>
+            <input th:field="*{endDate}" type="date" class="form-control" required/>
+        </div>
+        <div>
+            <label class="form-label">Is Open: </label>
+            <input type="checkbox" th:field="*{open}"
+                   th:disabled="${not #authorization.expression('hasRole(''ADMIN'')')}" />
+        </div>
+
+        <div class="row">
+            <a th:href="@{/course}" class="btn btn-outline-secondary col-5 m-2">Cancel</a>
+            <button type="submit" class="btn btn-outline-success col-5 m-2" th:text="${isUpdate} ? 'Update course' : 'Add Course'"></button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

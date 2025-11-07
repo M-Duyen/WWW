@@ -1,4 +1,4 @@
-package com.example.springboot_shoppingdb.controller;
+package iuh.fit.on_thck.controllers;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,25 +12,21 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/home")
 public class HomeController {
-
     public HomeController() {
-        super();
     }
-
-    @GetMapping
-    public String HomePage( Model model) {
+    @GetMapping()
+    public String homePage(Model model){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username;
-        if (auth != null && auth.isAuthenticated()) {
+        if(auth != null && auth.isAuthenticated()){
             username = auth.getName();
-        } else {
+        }else{
             username = "Guest";
         }
-
-        LocalDate date = LocalDate.now();
-        String mess = "Welcome Thymeleaf " + username ;
-        model.addAttribute("message", mess);
-        model.addAttribute("date", date.toString());
+        LocalDate localDate = LocalDate.now();
+        String mess = "Welcome Thymeleaf " + username;
+        model.addAttribute("mess", mess);
+        model.addAttribute("localDate", localDate);
         return "home";
     }
 }

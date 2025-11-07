@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Product List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4">
+    <a th:href="@{/home}" class="btn btn-outline-secondary m-2">Back to home</a>
+    <div sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/products/create}" class="btn btn-success m-2">Add product</a>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3" th:each="product : ${products}">
+
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${product.name}">Name</h5>
+                    <p class="card-text" th:text="${product.description}">Description</p>
+                    <p class="card-text">
+                        <b>Price: </b>
+                        <span th:text="${product.price}">Price</span>
+                    </p>
+                    <p class="card-text">
+                        <b>InStock: </b>
+                        <span th:text="${product.inStock}">In Stock</span>
+                    </p>
+                    <a sec:authorize="hasAnyRole('ADMIN', 'CUSTOMER')" th:href="@{/products/{id}(id=${product.id})}" class="btn btn-outline-info">View</a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-outline-warning">Edit</a>
+                    <form sec:authorize="hasRole('ADMIN')" th:action="@{/products/delete/{id}(id=${product.id})}" method="post"
+                          onsubmit="return confirm('Delete this product?')" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger col-3">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
